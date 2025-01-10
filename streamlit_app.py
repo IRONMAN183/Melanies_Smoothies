@@ -20,6 +20,7 @@ cnx = st.connection("snowflake")
 session = cnx.session()
 fruit_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
 st.dataframe(data=my_dataframe, use_container_width=True)
+st.stop()
 fruit_list = [row['FRUIT_NAME'] for row in fruit_dataframe.collect()]  # Convert to a Python list
 
 # Multi-select for ingredients with a maximum of 5 selections
