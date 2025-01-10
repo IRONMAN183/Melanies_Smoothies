@@ -18,7 +18,8 @@ st.write('The name on the smoothie will be:', name_on_order)
 # Get Snowflake session and retrieve available fruit options
 cnx = st.connection("snowflake")
 session = cnx.session()
-fruit_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
+fruit_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
+st.dataframe(data=my_dataframe, use_container_width=True)
 fruit_list = [row['FRUIT_NAME'] for row in fruit_dataframe.collect()]  # Convert to a Python list
 
 # Multi-select for ingredients with a maximum of 5 selections
@@ -36,14 +37,6 @@ if ingredients_list:
         st.subheader(fruit_chosen + ' Nutrition Information')
         smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
         sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
-#updated 
-my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
-st.dataframe(data=my_dataframe, use_container_width=True)
-st.stop()
-
-ingredients_list = st.multiselect(
-    # Add your parameters here for selecting fruits
-)
 
 #if ingredients_list:
  #   ingredients_string = ''
