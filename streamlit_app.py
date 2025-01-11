@@ -21,12 +21,15 @@ st.write('The name on the smoothie will be:', name_on_order)
 # Get Snowflake session and retrieve available fruit options
 cnx = st.connection("snowflake")
 session = cnx.session()
-fruit_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
-st.dataframe(data=fruit_dataframe, use_container_width=True)
+my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
+# st.dataframe(data=my_dataframe, use_container_width=True)  # Optional for debugging
+# st.stop()
 
+# Convert the Snowflake Dataframe to a Pandas DataFrame
+pd_df = my_dataframe.to_pandas()  # Use Snowpark's built-in method to convert to Pandas
+st.dataframe(pd_df)  # Display the Pandas DataFrame
 st.stop()
-# Convert Snowflake data into a Pandas DataFrame
-fruit_pandas_df = pd.DataFrame(fruit_dataframe.collect())  # Create Pandas DataFrame
+
 fruit_list = fruit_pandas_df['FRUIT_NAME'].tolist()  # Extract fruit names as a list
 st.write(fruit_pandas_df)  # Display the Pandas DataFrame
 
