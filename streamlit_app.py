@@ -42,11 +42,11 @@ if ingredients_list:
         # Get the corresponding SEARCH_ON value for the selected fruit
         if fruit_chosen in pd_df['FRUIT_NAME'].values:
             search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-            st.write('The search value for ', fruit_chosen, ' is ', search_on, '.')
+            #st.write('The search value for ', fruit_chosen, ' is ', search_on, '.')
             
             # Fetch and display nutrition information
             st.subheader(f"{fruit_chosen} Nutrition Information")
-            smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit" + search_on)
+            smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/")
             if smoothiefroot_response.status_code == 200:
                 st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
             else:
@@ -59,19 +59,17 @@ time_to_insert = st.button('Submit Order')
 
 if time_to_insert:
     if name_on_order and ingredients_list:
-        # Construct the SQL statement with formatted placeholders
+        # Construct the SQL statement with placeholders
         ingredients_string = ', '.join(ingredients_list)  # Join ingredients into a single string
-        insert_query = f"""
-            INSERT INTO smoothies.public.orders (INGREDIENTS, NAME_ON_ORDER)
-            VALUES ('{ingredients_string}', '{name_on_order}')
-        """
         try:
-            # Execute the SQL query
-            session.sql(insert_query).collect()
+            session.sql(
+                """
+                INSERT INTO smoothies.public.orders (INGREDIENTS, NAME_ON_ORDER)
+                VALUES (:ingredients, :name)
+                """
+            ).bind("ingredients", ingredients_string).bind("name", name_on_order).collect()
             st.success(f'Your Smoothie Ordered, {name_on_order}!', icon="✅")
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
         st.error('Please enter a name and select ingredients!', icon="❌")
-
-
