@@ -19,7 +19,8 @@ st.write('The name on the smoothie will be:', name_on_order)
 cnx = st.connection("snowflake")
 session = cnx.session()
 fruit_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
-st.dataframe(data=my_dataframe, use_container_width=True)
+st.dataframe(data=fruit_dataframe, use_container_width=True)
+
 st.stop()
 fruit_list = [row['FRUIT_NAME'] for row in fruit_dataframe.collect()]  # Convert to a Python list
 
