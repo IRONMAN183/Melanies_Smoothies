@@ -1,4 +1,11 @@
-if ingredients_list:
+# Multi-select for ingredients with a maximum of 5 selections
+ingredients_list = st.multiselect(
+    'Choose up to 5 Ingredients:', 
+    fruit_list, 
+    max_selections=5
+)
+
+if ingredients_list:  # Check if ingredients_list is not empty
     ingredients_string = ''
 
     for fruit_chosen in ingredients_list:
@@ -15,3 +22,4 @@ if ingredients_list:
                 st.error(f"Failed to fetch data for {fruit_chosen}.")
         else:
             st.error(f"Fruit '{fruit_chosen}' not found in the database.")
+
