@@ -1,4 +1,6 @@
 # Import python packages
+pandas
+import pandas as pd  # Shortened to pd for easier use
 import streamlit as st
 import requests
 from snowflake.snowpark.functions import col
@@ -22,7 +24,9 @@ fruit_dataframe = session.table("smoothies.public.fruit_options").select(col('FR
 st.dataframe(data=fruit_dataframe, use_container_width=True)
 
 st.stop()
-fruit_list = [row['FRUIT_NAME'] for row in fruit_dataframe.collect()]  # Convert to a Python list
+# Convert Snowflake data into a Pandas DataFrame
+fruit_pandas_df = pd.DataFrame(fruit_dataframe.collect())  # Create Pandas DataFrame
+fruit_list = fruit_pandas_df['FRUIT_NAME'].tolist()  # Extract fruit names as a list
 
 # Multi-select for ingredients with a maximum of 5 selections
 ingredients_list = st.multiselect(
