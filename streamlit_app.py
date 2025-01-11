@@ -1,10 +1,10 @@
 # Import python packages
-pandas
+# Import python packages
 import pandas as pd  # Shortened to pd for easier use
 import streamlit as st
 import requests
 from snowflake.snowpark.functions import col
-pip install pandas
+
 
 # Write directly to the app
 st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
