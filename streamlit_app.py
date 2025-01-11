@@ -59,15 +59,15 @@ time_to_insert = st.button('Submit Order')
 
 if time_to_insert:
     if name_on_order and ingredients_list:
-        # Construct the SQL statement with placeholders
+        # Construct the SQL statement with formatted placeholders
         ingredients_string = ', '.join(ingredients_list)  # Join ingredients into a single string
+        insert_query = f"""
+            INSERT INTO smoothies.public.orders (INGREDIENTS, NAME_ON_ORDER)
+            VALUES ('{ingredients_string}', '{name_on_order}')
+        """
         try:
-            session.sql(
-                """
-                INSERT INTO smoothies.public.orders (INGREDIENTS, NAME_ON_ORDER)
-                VALUES (:ingredients, :name)
-                """
-            ).bind("ingredients", ingredients_string).bind("name", name_on_order).collect()
+            # Execute the SQL query
+            session.sql(insert_query).collect()
             st.success(f'Your Smoothie Ordered, {name_on_order}!', icon="✅")
         except Exception as e:
             st.error(f"An error occurred: {e}")
