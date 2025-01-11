@@ -27,6 +27,7 @@ st.stop()
 # Convert Snowflake data into a Pandas DataFrame
 fruit_pandas_df = pd.DataFrame(fruit_dataframe.collect())  # Create Pandas DataFrame
 fruit_list = fruit_pandas_df['FRUIT_NAME'].tolist()  # Extract fruit names as a list
+st.write(fruit_pandas_df)  # Display the Pandas DataFrame
 
 # Multi-select for ingredients with a maximum of 5 selections
 ingredients_list = st.multiselect(
