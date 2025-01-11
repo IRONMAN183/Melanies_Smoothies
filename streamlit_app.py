@@ -1,10 +1,8 @@
 # Import python packages
-# Import python packages
 import pandas as pd  # Shortened to pd for easier use
 import streamlit as st
 import requests
 from snowflake.snowpark.functions import col
-
 
 # Write directly to the app
 st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
@@ -21,21 +19,14 @@ st.write('The name on the smoothie will be:', name_on_order)
 # Get Snowflake session and retrieve available fruit options
 cnx = st.connection("snowflake")
 session = cnx.session()
+
+# Query Snowflake and convert to Pandas DataFrame
 my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'), col('SEARCH_ON'))
-# st.dataframe(data=my_dataframe, use_container_width=True)  # Optional for debugging
-# st.stop()
+pd_df = my_dataframe.to_pandas()  # Convert Snowflake DataFrame to Pandas
+st.dataframe(pd_df)  # Display the Pandas DataFrame for debugging
 
-search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-
-
-\
-# Convert the Snowflake Dataframe to a Pandas DataFrame
-pd_df = my_dataframe.to_pandas()  # Use Snowpark's built-in method to convert to Pandas
-st.dataframe(pd_df)  # Display the Pandas DataFrame
-st.stop()
-
-fruit_list = fruit_pandas_df['FRUIT_NAME'].tolist()  # Extract fruit names as a list
-st.write(fruit_pandas_df)  # Display the Pandas DataFrame
+# Extract fruit names as a list
+fruit_list = pd_df['FRUIT_NAME'].tolist()
 
 # Multi-select for ingredients with a maximum of 5 selections
 ingredients_list = st.multiselect(
@@ -48,53 +39,38 @@ if ingredients_list:
     ingredients_string = ''
 
     for fruit_chosen in ingredients_list:
-        ingredients_string += fruit_chosen + ' '
-
-        search_on=pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-        st.write('The search value for ', fruit_chosen,' is ', search_on, '.')
-        
-        st.subheader(fruit_chosen + ' Nutrition Information')
-        smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/" + fruit_chosen)
-        sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
-
-#if ingredients_list:
- #   ingredients_string = ''
-
-  #  for fruit_chosen in ingredients_list:
-   #     ingredients_string += fruit_chosen + ' '
-   #     smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-    #    sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
-
-
-# Display selected ingredients
-#if ingredients_list:
-    #ingredients_string = ', '.join(ingredients_list)  # Create a comma-separated string
-    #st.write('You selected:', ingredients_string)
-#else:
-    #ingredients_string = None
+        # Get the corresponding SEARCH_ON value for the selected fruit
+        if fruit_chosen in pd_df['FRUIT_NAME'].values:
+            search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
+            st.write('The search value for ', fruit_chosen, ' is ', search_on, '.')
+            
+            # Fetch and display nutrition information
+            st.subheader(f"{fruit_chosen} Nutrition Information")
+            smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
+            if smoothiefroot_response.status_code == 200:
+                st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+            else:
+                st.error(f"Failed to fetch data for {fruit_chosen}.")
+        else:
+            st.error(f"Fruit '{fruit_chosen}' not found in the database.")
 
 # Button to submit order
 time_to_insert = st.button('Submit Order')
 
 if time_to_insert:
-    if name_on_order and ingredients_string:
+    if name_on_order and ingredients_list:
         # Construct the SQL statement with placeholders
-        my_insert_stmt = f"""
-            INSERT INTO smoothies.public.orders (INGREDIENTS, NAME_ON_ORDER)
-            VALUES ('{ingredients_string}', '{name_on_order}')
-        """
+        ingredients_string = ', '.join(ingredients_list)  # Join ingredients into a single string
         try:
-            # Execute the SQL query
-            session.sql(my_insert_stmt).collect()
+            session.sql(
+                """
+                INSERT INTO smoothies.public.orders (INGREDIENTS, NAME_ON_ORDER)
+                VALUES (:ingredients, :name)
+                """
+            ).bind("ingredients", ingredients_string).bind("name", name_on_order).collect()
             st.success(f'Your Smoothie Ordered, {name_on_order}!', icon="✅")
         except Exception as e:
             st.error(f"An error occurred: {e}")
     else:
         st.error('Please enter a name and select ingredients!', icon="❌")
 
-
-
-
-
-smoothiefroot_response = requests.get("https://my.smoothiefroot.com/api/fruit/watermelon")
-sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
