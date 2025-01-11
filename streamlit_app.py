@@ -25,6 +25,10 @@ my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT
 # st.dataframe(data=my_dataframe, use_container_width=True)  # Optional for debugging
 # st.stop()
 
+search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
+
+
+\
 # Convert the Snowflake Dataframe to a Pandas DataFrame
 pd_df = my_dataframe.to_pandas()  # Use Snowpark's built-in method to convert to Pandas
 st.dataframe(pd_df)  # Display the Pandas DataFrame
