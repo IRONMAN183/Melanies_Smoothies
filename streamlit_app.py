@@ -36,23 +36,40 @@ ingredients_list = st.multiselect(
 )
 
 if ingredients_list:
-    ingredients_string = ''
-
     for fruit_chosen in ingredients_list:
-        # Get the corresponding SEARCH_ON value for the selected fruit
+        # Check if the selected fruit exists in the DataFrame
         if fruit_chosen in pd_df['FRUIT_NAME'].values:
-            search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].iloc[0]
-            st.write('The search value for ', fruit_chosen, ' is ', search_on, '.')
-            
-            # Fetch and display nutrition information
-            st.subheader(f"{fruit_chosen} Nutrition Information")
-            smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
-            if smoothiefroot_response.status_code == 200:
-                st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
-            else:
-                st.error(f"Failed to fetch data for {fruit_chosen}.")
+            # Safely extract the corresponding SEARCH_ON value
+            try:
+                search_on = pd_df.loc[pd_df['FRUIT_NAME'] == fruit_chosen, 'SEARCH_ON'].values[0]
+                st.write(f"The search value for {fruit_chosen} is {search_on}.")
+                
+                # Fetch and display nutrition information
+                st.subheader(f"{fruit_chosen} Nutrition Information")
+                smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/{search_on}")
+                
+                # Check if the API call was successful
+                if smoothiefroot_response.status_code == 200:
+                    try:
+                        # Attempt to parse and display the response as a DataFrame
+                        response_data = smoothiefroot_response.json()
+                        if isinstance(response_data, dict):  # Check if the response is a dictionary
+                            response_df = pd.DataFrame([response_data])  # Convert to DataFrame
+                        elif isinstance(response_data, list):  # Check if the response is a list
+                            response_df = pd.DataFrame(response_data)
+                        else:
+                            raise ValueError("Unexpected API response format.")
+                        
+                        st.dataframe(response_df, use_container_width=True)
+                    except Exception as e:
+                        st.error(f"Error parsing nutrition information: {e}")
+                else:
+                    st.error(f"Failed to fetch data for {fruit_chosen}. API returned {smoothiefroot_response.status_code}.")
+            except IndexError:
+                st.error(f"Could not find SEARCH_ON value for {fruit_chosen}.")
         else:
             st.error(f"Fruit '{fruit_chosen}' not found in the database.")
+
 
 # Button to submit order
 time_to_insert = st.button('Submit Order')
