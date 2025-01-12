@@ -34,7 +34,6 @@ ingredients_list = st.multiselect(
     fruit_list, 
     max_selections=5
 )
-
 if ingredients_list:
     for fruit_chosen in ingredients_list:
         # Check if the selected fruit exists in the DataFrame
@@ -46,7 +45,7 @@ if ingredients_list:
                 
                 # Fetch and display nutrition information
                 st.subheader(f"{fruit_chosen} Nutrition Information")
-                smoothiefroot_response = requests.get(f"hhttps://my.smoothiefroot.com/api/fruit/all/{search_on}")
+                smoothiefroot_response = requests.get(f"https://my.smoothiefroot.com/api/fruit/all/{search_on}")
                 
                 # Check if the API call was successful
                 if smoothiefroot_response.status_code == 200:
@@ -69,7 +68,6 @@ if ingredients_list:
                 st.error(f"Could not find SEARCH_ON value for {fruit_chosen}.")
         else:
             st.error(f"Fruit '{fruit_chosen}' not found in the database.")
-
 
 # Button to submit order
 time_to_insert = st.button('Submit Order')
